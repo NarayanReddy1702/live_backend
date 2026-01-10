@@ -1,5 +1,5 @@
 import express from "express"
-import { addCard, deleteItem, doLike, getAllCards } from "../controller/card.controller.js"
+import { addCard, deleteItem, doLike, getACard, getAllCards } from "../controller/card.controller.js"
 import authMiddleware from "../middleware/authMiddleware.js"
 import multer from "multer"
 
@@ -23,6 +23,6 @@ cardRouter.post("/addCard",authMiddleware, upload.fields([
 cardRouter.get("/getAllCards" ,getAllCards)
 cardRouter.delete("/deleteCard/:id",authMiddleware,deleteItem)
 cardRouter.put("/doLike",authMiddleware,doLike)
-
+cardRouter.get("/getACard/:id",authMiddleware,getACard)
 
 export default cardRouter

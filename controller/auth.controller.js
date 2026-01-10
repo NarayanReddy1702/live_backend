@@ -169,33 +169,64 @@ async function deleteUser(req,res) {
   }
 }
 
-async function updateAuth(req,res) {
-   try {
-      const {id}=req.params
-      const {email,fullName,gender} =req.body
-       const existingUser = await User.findOne({ email });
+async function updateAuth(req, res) {
+  try {
+    const { id } = req.params;
+    const { email, fullName, gender } = req.body;
+
+    // Check email uniqueness
+    const existingUser = await User.findOne({ email });
     if (existingUser && existingUser._id.toString() !== id) {
-      return res.status(400).json({ message: "Email already in use by another user", success: false });
+      return res.status(400).json({
+        message: "Email already in use by another user",
+        success: false,
+      });
     }
+
+    // Generate avatar
     const profilePic =
-      gender === "male"
-        ? `https://avatar.iran.liara.run/public/boy?username=${fullName}`
-        : `https://avatar.iran.liara.run/public/girl?username=${fullName}`;
-      const updateUser = await User.findByIdAndUpdate(id,{email,username,gender,profilePic},{new:true})
-      if(!updateUser){
-        return res.status(501).json({message:"Auth Update Error"})
-      }
-      res.status(201).json({message:"Update successfully !",success:true,user:{
-        fullName:updateUser.fullName,
-        email:updateUser.email,
-        ProfilePic:updateUser.ProfilePic,
-        gender:updateUser.gender,
-        role:updateUser.role,
-        _id:updateUser._id
-      }})
-   } catch (error) {
-       res.status(404).json({message:"failed to update user"})
-   }
+      gender === "Male"
+        ? `https://avatar.iran.liara.run/public/boy?username=${encodeURIComponent(fullName)}`
+        : `https://avatar.iran.liara.run/public/girl?username=${encodeURIComponent(fullName)}`;
+
+    // Update user
+    const updatedUser = await User.findByIdAndUpdate(
+      id,
+      {
+        email: email.trim(),
+        fullName: fullName.trim(),
+        gender,
+        profilePic,
+      },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Update successful!",
+      success: true,
+      user: {
+        _id: updatedUser._id,
+        fullName: updatedUser.fullName,
+        email: updatedUser.email,
+        gender: updatedUser.gender,
+        role: updatedUser.role,
+        profilePic: updatedUser.profilePic,
+      },
+    });
+  } catch (error) {
+    console.error("Update Auth Error:", error);
+    return res.status(500).json({
+      message: "Failed to update user",
+      success: false,
+    });
+  }
 }
 
 async function getOneUser(req,res) {
