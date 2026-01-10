@@ -20,7 +20,7 @@ cardRouter.post("/addCard",authMiddleware, upload.fields([
     { name: "thumbline", maxCount: 1 }, 
     { name: "images", maxCount: 6 },   
   ]),addCard)
-cardRouter.get("/getAllCards",authMiddleware ,getAllCards)
+cardRouter.get("/getAllCards" ,getAllCards)
 cardRouter.delete("/deleteCard/:id",authMiddleware,deleteItem)
 cardRouter.put("/doLike",authMiddleware,doLike)
 
