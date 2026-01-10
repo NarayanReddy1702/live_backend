@@ -128,7 +128,7 @@ async function authLogout(req, res) {
   try {
     res.clearCookie("token", {
       secure: false,
-      sameSite: lax, 
+      sameSite: false, 
     });
     res.status(200).json({ message: "Logout Successfully!", success: true });
   } catch (error) {
