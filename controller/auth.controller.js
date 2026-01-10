@@ -94,12 +94,13 @@ async function authLogin(req, res) {
     );
 
     
-  res.cookie("token", token, {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax",
-      maxAge: 24 * 60 * 60 * 1000,
-    });
+ res.cookie("token", token, {
+  
+  secure: true,        // REQUIRED (HTTPS)
+  sameSite:false,    // REQUIRED (cross-site)
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+});
+
 
 
     return res.status(200).json({
@@ -126,9 +127,8 @@ async function authLogin(req, res) {
 async function authLogout(req, res) {
   try {
     res.clearCookie("token", {
-      httpOnly: true,
-      secure: false,
-      sameSite: "lax", 
+      secure: ture,
+      sameSite: false, 
     });
     res.status(200).json({ message: "Logout Successfully!", success: true });
   } catch (error) {
