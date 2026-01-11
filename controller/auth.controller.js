@@ -2,6 +2,7 @@ import User from "../model/auth.model.js";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import SareeModel from "../model/card.model.js";
+import mongoose  from "mongoose";
 
 async function authRegister(req, res) {
   try {
@@ -244,32 +245,43 @@ async function getOneUser(req,res) {
 
 async function Order(req, res) {
   try {
-    const data= req.body; 
-    const {id,userId}=data.id
-    console.log(id,userId)
-    if (!id || !userId) {
-      return res.status(400).json({ message: "Invalid Saree Id or User Id" });
+    const { sareeId } = req.body;
+    const user = req.user;
+
+    console.log("sareeId", sareeId, user);
+
+    if (!sareeId || !user?._id) {
+      return res
+        .status(400)
+        .json({ message: "Invalid Saree Id or User Id" });
     }
-    const saree = await SareeModel.findById(id);
+
+    // Optional but recommended
+    if (!mongoose.Types.ObjectId.isValid(sareeId)) {
+      return res.status(400).json({ message: "Invalid Saree ObjectId" });
+    }
+
+    const saree = await SareeModel.findById(sareeId);
     if (!saree) {
       return res.status(404).json({ message: "Saree not found" });
     }
 
-   
-    const user = await User.findByIdAndUpdate(
-      userId,
-      { $addToSet: { addToCard: id } }, 
+    const updatedUser = await User.findByIdAndUpdate(
+      user._id,
+      {
+        $addToSet: { addToCard: sareeId } // ✅ ONLY ObjectId
+      },
       { new: true }
-    ).populate("addToCard")
+    ).populate("addToCard");
 
     res.status(200).json({
-      message: "Saree added to cart successfully",
-      cart: user.addToCard,
       success: true,
+      message: "Saree added to cart successfully",
+      cart: updatedUser.addToCard,
     });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server Error", error });
+    console.error("Order Error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 }
 
