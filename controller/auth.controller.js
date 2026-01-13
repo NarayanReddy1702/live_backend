@@ -256,7 +256,7 @@ async function Order(req, res) {
         .json({ message: "Invalid Saree Id or User Id" });
     }
 
-    // Optional but recommended
+    
     if (!mongoose.Types.ObjectId.isValid(sareeId)) {
       return res.status(400).json({ message: "Invalid Saree ObjectId" });
     }
@@ -269,7 +269,7 @@ async function Order(req, res) {
     const updatedUser = await User.findByIdAndUpdate(
       user._id,
       {
-        $addToSet: { addToCard: sareeId } // ✅ ONLY ObjectId
+        $addToSet: { addToCard: sareeId }
       },
       { new: true }
     ).populate("addToCard");
@@ -285,6 +285,30 @@ async function Order(req, res) {
   }
 }
 
+async function removeFromOrderList(req,res){
+try {
+   const {sareeId} = req.body
+   const {_id}= req.user
+  if(!sareeId){
+    return res.status(501).json({message:"Internal Server Error",success:false})
+  }
+  
+  if(!_id){
+    return res.status(401).json({message:"User is not authorized",success:false})
+  }
+  
+  const removeOrder = await User.findByIdAndUpdate(_id,{$pull:{addToCard:sareeId}},{new:true})
+  if(!removeOrder){
+    return res.status(401).json({message:"Failed To Remove Order Form Order List",success:false})
+  }
+  
+  res.status(201).json({message:"Order has been removed Successfully !",success:true,OrderList:removeOrder})
+} catch (error) {
+   res.status(404).json({message:"Error While Removing Orde From Order List",success:false})
+}
+
+}
+
 
 
 export {
@@ -295,5 +319,6 @@ export {
     deleteUser,
     updateAuth,
     getOneUser,
-    Order
+    Order,
+    removeFromOrderList
 }
