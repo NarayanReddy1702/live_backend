@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import SareeModel from "../model/card.model.js";
 import mongoose  from "mongoose";
+import {v4 as uuid} from "uuid"
+import fileUpload from "../service/storage.service.js";
 
 async function authRegister(req, res) {
   try {
@@ -306,6 +308,60 @@ try {
 }
 
 
+async function uploadProfile(req, res) {
+
+  try {
+    const userId = req.user?._id;
+
+    if (!userId) {
+      return res.status(401).json({
+        message: "Unauthorized",
+        success: false,
+      });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        message: "No file uploaded",
+        success: false,
+      });
+    }
+
+    console.log(userId)
+    const { buffer } = req.file;
+
+   console.log(buffer)
+    const { url } = await fileUpload(buffer, uuid());
+console.log(url)
+
+    const userDet = await User.findByIdAndUpdate(
+      userId,
+      { ProfilePic: url },
+      { new: true }
+    );
+
+    console.log(userDet)
+    if (!userDet) {
+      return res.status(404).json({
+        message: "User not found",
+        success: false,
+      });
+    }
+
+    res.status(200).json({
+      message: "Profile picture updated successfully",
+      success: true,
+      user:userDet
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({
+      message: "Error while updating profile",
+      success: false,
+    });
+  }
+}
 
 export {
     authRegister,
@@ -316,5 +372,6 @@ export {
     updateAuth,
     getOneUser,
     Order,
-    removeFromOrderList
+    removeFromOrderList,
+    uploadProfile
 }
