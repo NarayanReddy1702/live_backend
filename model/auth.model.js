@@ -30,12 +30,6 @@ const authSchema = new mongoose.Schema(
       minlength: 6,
     },
 
-
-    gender: {
-      type: String,
-      enum: ["Male", "Female"],
-      required: true,
-    },
     role: {
       type: String,
       enum: ["user", "admin"],

@@ -6,14 +6,14 @@ import mongoose  from "mongoose";
 
 async function authRegister(req, res) {
   try {
-    const { fullName, email, password, role, gender } = req.body;
+    const { fullName, email, password, role} = req.body;
 
 
-    if (!fullName || !email || !password || !role || !gender) {
+    if (!fullName || !email || !password || !role ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    console.log(fullName,email,password,gender,role)
+    console.log(fullName,email,password,role)
     if (password.length < 6) {
       return res
         .status(401)
@@ -26,14 +26,8 @@ async function authRegister(req, res) {
       return res.status(409).json({ message: "User already registered" });
     }
 
-    var randowImage;
-    if (gender === "Male") {
-      randowImage =
-        randowImage = `https://avatar.iran.liara.run/public/boy?username=${fullName}`;
-    } else {
-      randowImage =
-        randowImage = `https://avatar.iran.liara.run/public/girl?username=${fullName}`;
-    }
+    const  randowImage  = `https://ui-avatars.com/api/?name=${fullName}&background=57C785&color=FFFFFF&size=128`
+
 
     const hasPassword = await bcrypt.hash(password, 10);
 
@@ -43,7 +37,6 @@ async function authRegister(req, res) {
       password: hasPassword,
       ProfilePic: randowImage,
       role,
-      gender,
     });
 
     if (!newUser) {
@@ -112,8 +105,7 @@ async function authLogin(req, res) {
         fullName: existingUser.fullName,
         email: existingUser.email,
         role: existingUser.role,
-        ProfilePic: existingUser.ProfilePic,
-        gender: existingUser.gender,
+        ProfilePic: existingUser.ProfilePic
       },
       token,
       success: true,
@@ -173,7 +165,7 @@ async function deleteUser(req,res) {
 async function updateAuth(req, res) {
   try {
     const { id } = req.params;
-    const { email, fullName, gender } = req.body;
+    const { email, fullName } = req.body;
 
     // Check email uniqueness
     const existingUser = await User.findOne({ email });
@@ -185,10 +177,7 @@ async function updateAuth(req, res) {
     }
 
     // Generate avatar
-    const profilePic =
-      gender === "Male"
-        ? `https://avatar.iran.liara.run/public/boy?username=${encodeURIComponent(fullName)}`
-        : `https://avatar.iran.liara.run/public/girl?username=${encodeURIComponent(fullName)}`;
+    const profilePic =`https://ui-avatars.com/api/?name=${fullName}&background=57C785&color=FFFFFF&size=128`
 
     // Update user
     const updatedUser = await User.findByIdAndUpdate(
@@ -196,8 +185,7 @@ async function updateAuth(req, res) {
       {
         email: email.trim(),
         fullName: fullName.trim(),
-        gender,
-        profilePic,
+        ProfilePic:profilePic,
       },
       { new: true }
     );
@@ -216,9 +204,8 @@ async function updateAuth(req, res) {
         _id: updatedUser._id,
         fullName: updatedUser.fullName,
         email: updatedUser.email,
-        gender: updatedUser.gender,
         role: updatedUser.role,
-        profilePic: updatedUser.profilePic,
+        ProfilePic: updatedUser.ProfilePic,
       },
     });
   } catch (error) {
@@ -260,6 +247,15 @@ async function Order(req, res) {
     if (!mongoose.Types.ObjectId.isValid(sareeId)) {
       return res.status(400).json({ message: "Invalid Saree ObjectId" });
     }
+   const userDet = await User.findById(user._id)
+   const alreadyAdded = userDet.addToCard.includes(sareeId)
+
+if (alreadyAdded) {
+  return res.status(200).json({
+    message: "This item has already been added to your cart",
+    success: false,
+  });
+}
 
     const saree = await SareeModel.findById(sareeId);
     if (!saree) {

@@ -98,18 +98,39 @@ const deleteItem = ( async (req,res)=>{
 async function doLike(req, res) {
   try {
     const { sareeId } = req.body;
-    console.log(sareeId)
+
     if (!sareeId) {
-      return res
-        .status(501)
-        .json({ message: "Failed to get product Id ", success: false });
+      return res.status(400).json({
+        message: "Failed to get product Id",
+        success: false,
+      });
     }
+
     const user = req.user;
     const existUser = await User.findById(user._id);
+
     if (!existUser) {
-      return res
-        .status(404)
-        .json({ message: "Failed to get user", success: false });
+      return res.status(404).json({
+        message: "Failed to get user",
+        success: false,
+      });
+    }
+
+    const sareeData = await SareeModel.findById(sareeId);
+
+    if (!sareeData) {
+      return res.status(404).json({
+        message: "Product not found",
+        success: false,
+      });
+    }
+
+    // 🔥 FIXED CHECK
+    if (sareeData.like.includes(user._id)) {
+      return res.status(200).json({
+        message: "You have already liked this item",
+        success: false,
+      });
     }
 
     const sareeItem = await SareeModel.findByIdAndUpdate(
@@ -118,23 +139,20 @@ async function doLike(req, res) {
       { new: true }
     ).populate("like");
 
-    if (!sareeItem) {
-      return res
-        .status(404)
-        .json({ message: "Failed to update like", success: false });
-    }
+    return res.status(201).json({
+      message: "Product Updated Successfully!",
+      success: true,
+      sareeItem,
+    });
 
-    res
-      .status(201)
-      .json({
-        message: "Product Updated Successfully!",
-        success: true,
-        sareeItem,
-      });
   } catch (error) {
-    res.status(404).json({ message: "Error While Updateing the Product Like" });
+    return res.status(500).json({
+      message: "Error While Updating the Product Like",
+      success: false,
+    });
   }
 }
+
 
 const getACard = async (req, res) => {
   try {
