@@ -140,7 +140,7 @@ async function doLike(req, res) {
     ).populate("like");
 
     return res.status(201).json({
-      message: "Product Updated Successfully!",
+      message: "Liked Successfully !",
       success: true,
       sareeItem,
     });
